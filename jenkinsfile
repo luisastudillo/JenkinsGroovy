@@ -1,10 +1,24 @@
 node {
-    stage('SCM') {
-        echo 'Gathering code from version control'
-    }
+	stage('SCM') {
+		echo 'Gathering code from version control'
+		git branch: '${branch}', url: 'https://github.com/luisastudillo/JenkinsGroovy.git'
+	}
     stage('Build') {
-        echo 'Building....'
-        echo 'Building new feature'
+		try{
+			echo 'Building....'
+			withDotNet(sdk: "sdk6"){
+				sh 'dotnet build ConsoleApp1'
+				echo 'Building new feature'
+				releasenotes(changes: "true");
+			}
+		}catch(ex){
+			echo 'Something went wrong'
+			echo ex.toString()
+			currentBuild.result = 'FAILURE'
+		}
+		finally{
+			// cleanup
+		}
     }
     stage('Test') {
         echo 'Testing....'
